@@ -1,0 +1,12 @@
+k8s/
+.git/
+.gitignore
+Dockerfile
+compose.yaml
+.pre-commit_config.yaml
+.pdm-python
+catalaog-info.yaml
+readme.md
+.venv/
+.vscode/
+.idea/

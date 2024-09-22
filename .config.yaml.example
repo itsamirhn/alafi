@@ -1,0 +1,2 @@
+debug: true
+secret_key: "long-secret"

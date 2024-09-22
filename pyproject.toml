@@ -1,0 +1,68 @@
+[project]
+name = "alafi"
+version = "0.1.0"
+authors = [
+    {name = "AmirMohammad Hosseini Nasab", email = "awmirhn@gmail.com"},
+]
+dependencies = [
+    "Django~=5.1.1",
+    "djangorestframework~=3.15.2",
+    "psycopg[binary]~=3.1.18",
+    "django-dbsettings~=1.3.0",
+    "dcloader~=0.11.0",
+    "asyncstdlib~=3.12.0",
+    "pytest~=8.2.2",
+]
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "ruff~=0.3.0",
+    "pre-commit~=3.6.2",
+    "django-stubs[compatible-mypy]~=5.0.4",
+    "isort~=5.13.2",
+    "ipython~=8.22.2",
+    "djangorestframework-stubs[compatible-mypy]~=3.15.1",
+    "model-bakery~=1.18.1",
+    "types-pytz>=2024.2.0.20240913",
+]
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+ruff-format = "ruff format {args}"
+ruff-lint = "ruff check {args}"
+ruff = {composite = ["ruff-format", "ruff-lint"]}
+mypy = "mypy {args:alafi exchange}"
+shell = "python manage.py shell -i ipython"
+server = "python manage.py runserver"
+
+[tool.mypy]
+enable_error_code = [
+    "ignore-without-code"
+]
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+strict = true
+python_version = "3.12"
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = [
+    "^.*/migrations/.*\\.py$",
+]
+
+[tool.django-stubs]
+django_settings_module = "alafi.settings"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+lint.select = ["ALL"]
+lint.ignore = ["D","COM812", "ISC001", "S101", "ANN401"]
+exclude = ["migrations", "manage.py"]
