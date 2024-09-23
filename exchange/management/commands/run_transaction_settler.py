@@ -10,7 +10,6 @@ from exchange import abc, models
 
 logger = logging.getLogger(__name__)
 
-
 class TransactionAggregator:
     def __init__(self: Self) -> None:
         self.MIN_ORDER = {
@@ -38,13 +37,16 @@ class Command(BaseCommand):
         while True:
             with transaction.atomic():
                 cls.settle_pending_transactions()
-            sleep(10)
+            sleep(1)
 
     @classmethod
     def settle_pending_transactions(cls: type[Self]) -> None:
         pending_transactions = (
             models.Transaction.objects.select_related("wallet")
-            .filter(status=models.Transaction.Status.PENDING)
+            .filter(
+                status=models.Transaction.Status.PENDING,
+                direction=models.Transaction.Direction.DEPOSIT,
+            )
             .select_for_update()
             .iterator(cls.BATCH_SIZE)
         )
@@ -66,3 +68,4 @@ class Command(BaseCommand):
             ).update(
                 status=models.Transaction.Status.SETTLED,
             )
+            logger.info("Settled %s transactions", len(batch))

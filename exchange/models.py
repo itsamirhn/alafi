@@ -1,5 +1,5 @@
 import uuid
-from typing import Self, Any
+from typing import Any, Self
 
 from django.contrib.auth import base_user
 from django.db import models
@@ -34,7 +34,7 @@ class Wallet(models.Model):
         unique_together = ("user", "coin")
 
     def __str__(self: Self) -> str:
-        return f"{self.id}"
+        return f"{self.uuid}"
 
 
 class Transaction(models.Model):
@@ -57,16 +57,12 @@ class Transaction(models.Model):
     direction = models.SmallIntegerField(choices=Direction.choices)
 
     def __str__(self: Self) -> str:
-        return f"{self.id}"
+        return f"{self.uuid}"
 
 
 @receiver(post_save, sender=User)
 def add_wallet_after_creation(instance: User, created: bool, *args: Any, **kwargs: Any) -> None:  # noqa: ARG001, FBT001
     if not created:
         return
-    usd_wallet = Wallet(
-        coin=Coin.USD,
-        user=instance,
-        balance=0
-    )
+    usd_wallet = Wallet(coin=Coin.USD, user=instance, balance=0)
     usd_wallet.save()

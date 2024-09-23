@@ -7,10 +7,12 @@ from exchange import models
 class UserAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     pass
 
+
 @admin.register(models.Wallet)
 class WalletAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     pass
 
+
 @admin.register(models.Transaction)
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     pass

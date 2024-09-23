@@ -1,5 +1,3 @@
-from .purchase import PurchaseSerializer
+from .purchase import PurchaseRequestSerializer
 
-__all__ = [
-    "PurchaseSerializer",
-]
+__all__ = ["PurchaseRequestSerializer"]
