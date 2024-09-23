@@ -12,12 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class TransactionAggregator:
-    def __init__(self: Self) -> None:
-        self.MIN_ORDER = {
-            models.Coin.ABAN.value: 10,
-            models.Coin.USD.value: 0,
-        }
-
     def __call__(self: Self, stream: Iterator[models.Transaction]) -> Iterator[list[models.Transaction]]:
         batch_by_coin: dict[int, list[models.Transaction]] = {}
         for t in stream:
@@ -25,7 +19,7 @@ class TransactionAggregator:
             batch.append(t)
             batch_by_coin[t.wallet.coin] = batch
 
-            if sum(t.amount for t in batch) >= self.MIN_ORDER[t.wallet.coin]:
+            if sum(t.amount for t in batch) >= abc.minimum_settlement_threshold(models.Coin(t.wallet.coin)):
                 yield batch_by_coin.pop(t.wallet.coin)
 
 
@@ -36,11 +30,11 @@ class Command(BaseCommand):
     @classmethod
     def handle(cls: type[Self], *_args: Any, **_kwargs: Any) -> None:
         while True:
-            with transaction.atomic():
-                cls.settle_pending_transactions()
+            cls.settle_pending_transactions()
             sleep(1)
 
     @classmethod
+    @transaction.atomic
     def settle_pending_transactions(cls: type[Self]) -> None:
         pending_transactions = (
             models.Transaction.objects.select_related("wallet")
