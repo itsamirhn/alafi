@@ -20,5 +20,5 @@ class PurchaseViewSet(
         purchase = self.serializer_class(data=request.data)
         purchase.is_valid(raise_exception=True)
         data = purchase.validated_data
-        CoinTrader(data["coin"]).trade(request.user, data["amount"])
+        CoinTrader(data["coin"]).trade(request.auth.user, data["amount"])
         return response.Response(data={"ok": True}, status=status.HTTP_201_CREATED)
