@@ -1,8 +1,8 @@
 version: '3'
 
 vars:
-  POSTGRES_CONTAINER_NAME: 'alafi-postgres'
-  POSTGRES_VOLUME_NAME: 'pgdata'
+  CONTAINER: 'alafi-postgres'
+  VOLUME: 'pgdata'
 
 env:
   ALAFI_CONFIG_FILE_PATH: .config.yaml
@@ -11,40 +11,31 @@ tasks:
   postgres:start:
     desc: Starts the Postgres container
     cmds:
-      - docker run --name {{.POSTGRES_CONTAINER_NAME}}
+      - docker run --name {{.CONTAINER}}
         -p 5432:5432
-        -v {{.POSTGRES_VOLUME_NAME}}:/var/lib/postgresql/data
+        -v {{.VOLUME}}:/var/lib/postgresql/data
         -e POSTGRES_PASSWORD=password
         -d postgres
-      - while ! docker exec {{.POSTGRES_CONTAINER_NAME}} pg_isready -U postgres; do sleep 1; done
+      - while ! docker exec {{.CONTAINER}} pg_isready -U postgres; do sleep 1; done
     status:
-      - docker ps | grep {{.POSTGRES_CONTAINER_NAME}}
+      - docker ps | grep {{.CONTAINER}}
 
   postgres:stop:
     desc: Stops the Postgres container
     cmds:
-      - docker stop {{.POSTGRES_CONTAINER_NAME}}
-      - docker rm {{.POSTGRES_CONTAINER_NAME}}
+      - docker stop {{.CONTAINER}}
+      - docker rm {{.CONTAINER}}
 
   postgres:clean:
     desc: Remove the Postgres volume
     cmds:
-      - docker volume rm {{.POSTGRES_VOLUME_NAME}}
-
-  migrate:
-    desc: Migrates the database
-    deps:
-      - postgres:start
-    cmds:
-      - defer: { task: postgres:stop }
-      - ./manage.py migrate
+      - docker volume rm {{.VOLUME}}
 
   shell:
     desc: Opens the Django shell
     deps:
       - postgres:start
     cmds:
-      - defer: { task: postgres:stop }
       - ./manage.py shell -i ipython
 
   serve:
@@ -52,5 +43,31 @@ tasks:
     deps:
       - postgres:start
     cmds:
-      - defer: { task: postgres:stop }
+      - ./manage.py migrate
       - ./manage.py runserver
+
+  settle:
+    desc: Run transactions settler
+    deps:
+      - postgres:start
+    cmds:
+      - ./manage.py run_transaction_settler
+
+  test:
+    desc: Runs the tests
+    cmds:
+      - task: postgres:start
+        vars:
+          CONTAINER: 'alafi-postgres-test'
+          VOLUME: 'pgdata-test'
+      - defer:
+          task: postgres:stop
+          vars:
+            CONTAINER: 'alafi-postgres-test'
+            VOLUME: 'pgdata-test'
+      - defer:
+          task: postgres:clean
+          vars:
+            CONTAINER: 'alafi-postgres-test'
+            VOLUME: 'pgdata-test'
+      - ./manage.py test

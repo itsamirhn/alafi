@@ -10,6 +10,7 @@ from exchange import abc, models
 
 logger = logging.getLogger(__name__)
 
+
 class TransactionAggregator:
     def __init__(self: Self) -> None:
         self.MIN_ORDER = {

@@ -43,16 +43,16 @@ class TokenManager:
         payload["exp"] = int((now + self.ttl).timestamp())
         return jwt.encode(payload, self.key, algorithm="HS256")
 
-    def validate(self: Self, token: str) -> tuple[TokenData, int]:
+    def validate(self: Self, token: str) -> TokenData:
         try:
             payload = jwt.decode(token, self.key, algorithms=["HS256"])
         except jwt.ExpiredSignatureError as exc:
             raise ExpiredTokenError from exc
         except jwt.InvalidTokenError as exc:
             raise InvalidTokenError from exc
-        iat = payload.pop("iat")
+        payload.pop("iat")
         payload.pop("exp")
-        return TokenData(**payload), iat
+        return TokenData(**payload)
 
 
 @dataclass
@@ -68,7 +68,7 @@ class Authentication(authentication.BaseAuthentication):
     TOKEN_PREFIX = "Bearer "  # noqa: S105
     token_manager = TokenManager(settings.AUTHENTICATION.key, settings.AUTHENTICATION.ttl)
 
-    def authenticate(self: Self, req: request.Request) -> tuple[None, AuthData]:
+    def authenticate(self: Self, req: request.Request) -> tuple[models.User, AuthData]:
         try:
             token = req.META.get("HTTP_AUTHORIZATION")
             if not token:
@@ -77,7 +77,7 @@ class Authentication(authentication.BaseAuthentication):
             if not token.lower().startswith(self.TOKEN_PREFIX.lower()):
                 raise exceptions.AuthenticationFailed(_("Invalid token."))
 
-            data, iat = self.token_manager.validate(token[len(self.TOKEN_PREFIX) :])
+            data = self.token_manager.validate(token[len(self.TOKEN_PREFIX) :])
         except InvalidTokenError as exc:
             raise exceptions.AuthenticationFailed(_("Invalid token.")) from exc
         except ExpiredTokenError as exc:
@@ -85,7 +85,7 @@ class Authentication(authentication.BaseAuthentication):
         else:
             user = get_object_or_404(models.User, id=data.user_id)
             auth = AuthData(user=user)
-            return None, auth
+            return user, auth
 
     def authenticate_header(self: Self, _: request.Request) -> str:
         return self.TOKEN_PREFIX
