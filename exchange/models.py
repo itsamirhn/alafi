@@ -1,13 +1,16 @@
 import uuid
-from typing import Self
+from typing import Self, Any
 
+from django.contrib.auth import base_user
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
-class User(models.Model):
-    id = models.AutoField(primary_key=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    phone_number = models.CharField(max_length=11, unique=True)
+class User(base_user.AbstractBaseUser):
+    phone_number = models.CharField(max_length=11, unique=True, db_index=True)
+    USERNAME_FIELD = "phone_number"
+    REQUIRED_FIELDS = ["phone_number"]  # noqa: RUF012
 
     def __str__(self: Self) -> str:
         return f"{self.phone_number}"
@@ -19,7 +22,7 @@ class Coin(models.IntegerChoices):
 
 
 class Wallet(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -44,7 +47,7 @@ class Transaction(models.Model):
         WITHDRAW = 0, "Withdraw"
         DEPOSIT = 1, "Deposit"
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     wallet = models.ForeignKey(Wallet, on_delete=models.PROTECT)
@@ -55,3 +58,15 @@ class Transaction(models.Model):
 
     def __str__(self: Self) -> str:
         return f"{self.id}"
+
+
+@receiver(post_save, sender=User)
+def add_wallet_after_creation(instance: User, created: bool, *args: Any, **kwargs: Any) -> None:  # noqa: ARG001, FBT001
+    if not created:
+        return
+    usd_wallet = Wallet(
+        coin=Coin.USD,
+        user=instance,
+        balance=0
+    )
+    usd_wallet.save()
