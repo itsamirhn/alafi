@@ -106,3 +106,5 @@ DATABASES = {
         },
     },
 }
+
+AUTHENTICATION = cfg.authentication

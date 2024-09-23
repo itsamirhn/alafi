@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, field
+from datetime import timedelta
 from typing import Self, cast
 
 from dcloader import Loader, Source
@@ -16,11 +17,19 @@ class Database:
 
 
 @dataclass
+class Authentication:
+    key: str = "some_key"
+    ttl: timedelta = timedelta(days=30)
+
+
+@dataclass
 class Config:
     secret_key: str
     debug: bool = False
     allowed_hosts: list[str] = field(default_factory=lambda: ["localhost", "127.0.0.1"])
     database: Database = field(default_factory=Database)
+
+    authentication: Authentication = field(default_factory=Authentication)
 
     @classmethod
     def load(cls: type[Self]) -> Self:

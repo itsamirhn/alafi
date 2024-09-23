@@ -4,7 +4,7 @@ from typing import Self
 from django.db.models import QuerySet
 from rest_framework import mixins, viewsets
 
-from exchange import models
+from exchange import authentication, models
 from exchange.serializers.api.v1 import PurchaseSerializer
 
 
@@ -14,6 +14,7 @@ class PurchaseViewSet(
     abc.ABC,
 ):
     serializer_class = PurchaseSerializer
+    authentication_classes = (authentication.Authentication,)
 
     @abc.abstractmethod
     def get_user(self: Self) -> models.User: ...
