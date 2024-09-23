@@ -10,7 +10,7 @@ class User(models.Model):
     phone_number = models.CharField(max_length=11, unique=True)
 
     def __str__(self: Self) -> str:
-        return f"User<{self.id}>"
+        return f"{self.phone_number}"
 
 
 class Coin(models.IntegerChoices):
@@ -31,7 +31,7 @@ class Wallet(models.Model):
         unique_together = ("user", "coin")
 
     def __str__(self: Self) -> str:
-        return f"Wallet<{self.id}>"
+        return f"{self.id}"
 
 
 class Transaction(models.Model):
@@ -54,4 +54,4 @@ class Transaction(models.Model):
     direction = models.SmallIntegerField(choices=Direction.choices)
 
     def __str__(self: Self) -> str:
-        return f"Transaction<{self.id}>"
+        return f"{self.id}"
