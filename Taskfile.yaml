@@ -39,6 +39,14 @@ tasks:
       - defer: { task: postgres:stop }
       - ./manage.py migrate
 
+  shell:
+    desc: Opens the Django shell
+    deps:
+      - postgres:start
+    cmds:
+      - defer: { task: postgres:stop }
+      - ./manage.py shell -i ipython
+
   serve:
     desc: Runs the server
     deps:

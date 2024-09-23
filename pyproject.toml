@@ -38,8 +38,6 @@ ruff-format = "ruff format {args}"
 ruff-lint = "ruff check {args}"
 ruff = {composite = ["ruff-format", "ruff-lint"]}
 mypy = "mypy {args:alafi exchange}"
-shell = "python manage.py shell -i ipython"
-server = "python manage.py runserver"
 
 [tool.mypy]
 enable_error_code = [
